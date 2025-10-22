@@ -1,12 +1,15 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Truck, Car, User, X, CloudUpload, CloudOff, RefreshCw, Sun, Moon } from 'lucide-react';
+import { Truck, Car, User, X, CloudUpload, CloudOff, RefreshCw, Sun, Moon, AlertCircle } from 'lucide-react';
 import type { EntryType, Entry, Payload } from '../types';
-import { MOCK_USER_ID, MOCK_CHECKPOINT_ID } from '../constants';
-import { loadEntries, saveEntries } from '../utils';
+import { useAuth } from '../contexts/AuthContext';
+import { api } from '../api/client';
+import { db } from '../lib/db';
 import { EntryForm } from './EntryForm';
 import { EntryList } from './EntryList';
 
 export const Main: React.FC = () => {
+    const { user, token } = useAuth();
+    
     // Theme management
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
         const savedTheme = localStorage.getItem('gatekeeper-theme');
@@ -23,17 +26,40 @@ export const Main: React.FC = () => {
     }, []);
 
     // State management
-    const [entries, setEntries] = useState<Entry[]>(loadEntries);
+    const [entries, setEntries] = useState<Entry[]>([]);
     const [currentEntryType, setCurrentEntryType] = useState<EntryType>('PERSONNEL');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [syncError, setSyncError] = useState<string | null>(null);
+    const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
-    const handleLogEntry = useCallback((payload: Payload) => {
+    // Load entries from IndexedDB on mount
+    useEffect(() => {
+        const loadEntriesFromDB = async () => {
+            try {
+                const dbEntries = await db.getAllEntries();
+                setEntries(dbEntries);
+                
+                // Load last sync time
+                const savedSyncTime = await db.getAppState<string>('lastSyncTime');
+                if (savedSyncTime) {
+                    setLastSyncTime(new Date(savedSyncTime));
+                }
+            } catch (error) {
+                console.error('Failed to load entries from IndexedDB:', error);
+            }
+        };
+        loadEntriesFromDB();
+    }, []);
+
+    const handleLogEntry = useCallback(async (payload: Payload) => {
+        if (!user) return;
+        
         const newEntry: Entry = {
             record_id: crypto.randomUUID(),
-            checkpoint_id: MOCK_CHECKPOINT_ID,
+            checkpoint_id: user.allowed_checkpoints?.[0] || 'UNKNOWN',
             entry_type: currentEntryType,
-            logging_user_id: MOCK_USER_ID,
+            logging_user_id: user.user_id,
             client_ts: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             created_at: new Date().toISOString(),
@@ -42,15 +68,17 @@ export const Main: React.FC = () => {
             payload: payload as any,
         };
 
-        setEntries(prev => [newEntry, ...prev]);
-    }, [currentEntryType]);
+        // Save to IndexedDB
+        try {
+            await db.saveEntry(newEntry);
+            setEntries(prev => [newEntry, ...prev]);
+        } catch (error) {
+            console.error('Failed to save entry to IndexedDB:', error);
+            alert('Failed to save entry locally. Please try again.');
+        }
+    }, [currentEntryType, user]);
 
     const pendingEntries = useMemo(() => entries.filter(e => e.isPending), [entries]);
-
-    // Update localStorage whenever entries change
-    useEffect(() => {
-        saveEntries(entries);
-    }, [entries]);
 
     // Listen for network status changes
     useEffect(() => {
@@ -64,35 +92,104 @@ export const Main: React.FC = () => {
         };
     }, []);
 
-    // Mock Synchronization Logic (P1.3)
+    // Real Synchronization Logic with Backend API
     const handleSync = useCallback(async (recordIdToSync?: string) => {
-        if (!isOnline || isSyncing) return;
+        if (!isOnline || isSyncing || !token) return;
 
         setIsSyncing(true);
-        console.log(`Starting sync: Pushing ${pendingEntries.length} entries...`);
+        setSyncError(null);
+        
+        try {
+            const entriesToSync = recordIdToSync 
+                ? pendingEntries.filter(e => e.record_id === recordIdToSync)
+                : pendingEntries;
 
-        // Simulate network latency (2 seconds)
-        await new Promise(resolve => setTimeout(resolve, 2000));
+            if (entriesToSync.length === 0) {
+                setIsSyncing(false);
+                return;
+            }
 
-        let syncedEntries = entries;
+            console.log(`Starting sync: Pushing ${entriesToSync.length} entries...`);
 
-        if (recordIdToSync) {
-            // Sync a single entry (e.g., the user pressed sync on a specific pending item)
-            syncedEntries = entries.map(e =>
-                e.record_id === recordIdToSync ? { ...e, isPending: false } : e
+            // PUSH: Send pending entries to server
+            const pushResponse = await api.sync.push(
+                token,
+                entriesToSync
             );
-        } else {
-            // Sync all pending entries
-            syncedEntries = entries.map(e => ({ ...e, isPending: false }));
+
+            // Update entries - mark successfully pushed entries as synced
+            const updatedEntries = entries.map(entry => {
+                // Check if this entry was rejected
+                const wasRejected = pushResponse.rejected_ids?.includes(entry.record_id);
+                if (wasRejected) {
+                    console.warn(`Entry ${entry.record_id} was rejected by server`);
+                    // Keep as pending, user can retry
+                    return entry;
+                }
+                
+                // If entry was in the sync batch and not rejected, mark as synced
+                const wasInBatch = entriesToSync.some(e => e.record_id === entry.record_id);
+                if (wasInBatch) {
+                    return { ...entry, isPending: false };
+                }
+                
+                return entry;
+            });
+
+            // PULL: Get any updates from server
+            const since = lastSyncTime ? lastSyncTime.toISOString() : undefined;
+            const pullResponse = await api.sync.pull(token, since);
+
+            // Merge pulled entries with local entries
+            const pulledEntries = pullResponse.entries || [];
+            const mergedEntries = [...updatedEntries];
+            
+            pulledEntries.forEach((serverEntry: Entry) => {
+                const existingIndex = mergedEntries.findIndex(
+                    e => e.record_id === serverEntry.record_id
+                );
+                
+                if (existingIndex >= 0) {
+                    // Update existing entry with server version
+                    mergedEntries[existingIndex] = { ...serverEntry, isPending: false };
+                } else {
+                    // Add new entry from server
+                    mergedEntries.unshift({ ...serverEntry, isPending: false });
+                }
+            });
+
+            // Save all entries to IndexedDB
+            await db.saveEntries(mergedEntries);
+            setEntries(mergedEntries);
+
+            // Update last sync time
+            const newSyncTime = new Date();
+            setLastSyncTime(newSyncTime);
+            await db.setAppState('lastSyncTime', newSyncTime.toISOString());
+
+            console.log(`Sync successful. Pushed ${pushResponse.accepted} entries, pulled ${pullResponse.count} entries.`);
+            
+            if (pushResponse.rejected_ids && pushResponse.rejected_ids.length > 0) {
+                setSyncError(`${pushResponse.rejected_ids.length} entries were rejected due to conflicts`);
+            }
+        } catch (error) {
+            console.error('Sync failed:', error);
+            setSyncError(error instanceof Error ? error.message : 'Sync failed. Please try again.');
+        } finally {
+            setIsSyncing(false);
         }
+    }, [entries, isOnline, isSyncing, pendingEntries, token, lastSyncTime]);
 
-        setEntries(syncedEntries);
-        console.log(`Sync successful. Synced ${pendingEntries.length} entries.`);
-        setIsSyncing(false);
+    // Background sync every 30 seconds when online
+    useEffect(() => {
+        if (!isOnline || !token || pendingEntries.length === 0) return;
 
-        // NOTE: In the real app, this is where the Go backend's /sync/push endpoint would be called.
-        // The Go API would return the server-stamped entry, which we would use to update the client list.
-    }, [entries, isOnline, isSyncing, pendingEntries.length]);
+        const syncInterval = setInterval(() => {
+            handleSync();
+        }, 30000); // 30 seconds
+
+        return () => clearInterval(syncInterval);
+    }, [isOnline, token, pendingEntries.length, handleSync]);
 
     const entryTypeButtons = [
         { type: 'PERSONNEL' as EntryType, Icon: User, label: 'Personnel' },
@@ -172,15 +269,18 @@ export const Main: React.FC = () => {
                             ))}
                         </div>
                     </div>
-                    {/* Checkpoint Info Card */}
-                    <div className="p-6 bg-indigo-50 shadow-md rounded-xl text-indigo-800">
-                        <h3 className="font-bold text-lg mb-2">Checkpoint Details</h3>
-                        <p className="text-sm">
-                            **Location:** {MOCK_CHECKPOINT_ID}<br/>
-                            **Operator ID:** {MOCK_USER_ID}<br/>
-                            <span className="text-xs italic text-indigo-600">This data is locally saved and will sync when online.</span>
-                        </p>
-                    </div>
+                    {/* Sync Error Display */}
+                    {syncError && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
+                            <div className="flex items-start space-x-2">
+                                <AlertCircle size={18} className="mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <h4 className="font-bold text-sm">Sync Error</h4>
+                                    <p className="text-xs mt-1">{syncError}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Column 2: Entry Form */}

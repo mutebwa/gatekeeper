@@ -31,6 +31,22 @@ export interface OtherPayload extends PayloadBase {
 
 export type Payload = PersonnelPayload | TruckPayload | CarPayload | OtherPayload;
 
+export interface Checkpoint {
+  checkpoint_id: string;
+  name: string;
+  location: string;
+}
+
+export interface User {
+  user_id: string;
+  username: string;
+  role: UserRole;
+  allowed_checkpoints: string[] | null;
+  supervisor_id?: string; // For GATE_OPERATOR: which supervisor manages them
+  managed_operators?: string[]; // For SUPERVISOR: list of operator user_ids they manage
+  last_login?: string;
+}
+
 export interface Entry<T extends Payload = Payload> {
     record_id: string;
     checkpoint_id: string;
@@ -44,7 +60,7 @@ export interface Entry<T extends Payload = Payload> {
     status: EntryStatus;
 
     // Mock flag for visual representation of pending sync
-    isPending: boolean;
+    isPending?: boolean;
 
     payload: T;
 }

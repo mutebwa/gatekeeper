@@ -1,10 +1,46 @@
 import React, { useMemo } from 'react';
-import { BarChart3, Users, Truck, Car, Activity, TrendingUp, Clock, AlertCircle } from 'lucide-react';
-import { loadEntries } from '../utils';
-import type { Entry } from '../types';
+import { useQuery } from '@tanstack/react-query';
+import { BarChart3, Users, Truck, Car, Activity, TrendingUp, Clock, AlertCircle, Loader } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../lib/db';
+import type { Entry as _Entry } from '../types';
 
 export const Dashboard: React.FC = () => {
-    const entries = useMemo(() => loadEntries(), []);
+    const { user } = useAuth();
+
+    // Fetch all entries from IndexedDB
+    const { data: allEntries = [], isLoading } = useQuery({
+        queryKey: ['dashboard-entries'],
+        queryFn: () => db.getAllEntries(),
+        initialData: [],
+    });
+
+    // Filter entries based on user role
+    // Gate operators see only their entries
+    // Supervisors see entries from their managed operators
+    // Admins see everything
+    const entries = useMemo(() => {
+        if (!user) return [];
+        
+        // Admins see all entries
+        if (user.role === 'ADMIN') {
+            return allEntries;
+        }
+        
+        // Supervisors see entries from their managed operators
+        if (user.role === 'SUPERVISOR' && user.managed_operators) {
+            return allEntries.filter(entry => 
+                user.managed_operators?.includes(entry.logging_user_id)
+            );
+        }
+        
+        // Gate operators see only their own entries
+        if (user.role === 'GATE_OPERATOR') {
+            return allEntries.filter(entry => entry.logging_user_id === user.user_id);
+        }
+        
+        return [];
+    }, [allEntries, user]);
 
     // Calculate dashboard statistics
     const stats = useMemo(() => {
@@ -77,11 +113,31 @@ export const Dashboard: React.FC = () => {
         { type: 'Other', count: stats.otherCount, icon: AlertCircle, color: 'bg-gray-500' }
     ];
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Loader className="animate-spin text-indigo-600" size={48} />
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 font-sans p-4 sm:p-8">
             <div className="mb-8">
                 <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">Dashboard</h1>
-                <p className="text-gray-600">Overview of checkpoint activity and analytics</p>
+                <p className="text-gray-600">
+                    Overview of checkpoint activity and analytics
+                    {user?.role === 'SUPERVISOR' && user.managed_operators && (
+                        <span className="ml-2 text-sm text-blue-600">
+                            (Showing data from {user.managed_operators.length} managed operator{user.managed_operators.length !== 1 ? 's' : ''})
+                        </span>
+                    )}
+                    {user?.role === 'GATE_OPERATOR' && (
+                        <span className="ml-2 text-sm text-green-600">
+                            (Your entries only)
+                        </span>
+                    )}
+                </p>
             </div>
 
             {/* Stats Cards */}
@@ -155,19 +211,26 @@ export const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button className="p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg text-indigo-700 font-medium transition-colors">
-                        View All Entries
-                    </button>
-                    <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-green-700 font-medium transition-colors">
-                        Export Data
-                    </button>
-                    <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-blue-700 font-medium transition-colors">
-                        Generate Report
-                    </button>
+            {/* Quick Stats Summary */}
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+                <h2 className="text-xl font-bold mb-4">Summary</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <div className="text-3xl font-bold">{stats.totalEntries}</div>
+                        <div className="text-sm opacity-90">Total Entries</div>
+                    </div>
+                    <div>
+                        <div className="text-3xl font-bold">{stats.personnelCount}</div>
+                        <div className="text-sm opacity-90">Personnel</div>
+                    </div>
+                    <div>
+                        <div className="text-3xl font-bold">{stats.truckCount + stats.carCount}</div>
+                        <div className="text-sm opacity-90">Vehicles</div>
+                    </div>
+                    <div>
+                        <div className="text-3xl font-bold">{stats.avgPerDay}</div>
+                        <div className="text-sm opacity-90">Avg/Day</div>
+                    </div>
                 </div>
             </div>
         </div>
