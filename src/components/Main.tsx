@@ -201,31 +201,31 @@ export const Main: React.FC = () => {
     const isSyncButtonDisabled = !isOnline || isSyncing || pendingEntries.length === 0;
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans p-4 sm:p-8">
-            <header className="mb-8 p-4 bg-white shadow-lg rounded-xl flex flex-col sm:flex-row justify-between items-center sticky top-4 z-10">
-                <h1 className="text-3xl font-extrabold text-indigo-700 mb-2 sm:mb-0">GateKeeper Checkpoint</h1>
+        <div className="min-h-screen bg-gray-50 font-sans p-2 sm:p-4 lg:p-8">
+            <header className="mb-4 sm:mb-6 lg:mb-8 p-3 sm:p-4 bg-white shadow-lg rounded-xl flex flex-col sm:flex-row justify-between items-center sticky top-2 sm:top-4 z-10">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-indigo-700 mb-2 sm:mb-0">GateKeeper</h1>
 
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 sm:space-x-4">
                     {/* Theme Toggle */}
                     <button
                         onClick={toggleTheme}
-                        className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                        className="p-2 sm:p-3 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
                         title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
                     >
-                        {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+                        {theme === 'light' ? <Moon size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Sun size={16} className="sm:w-[18px] sm:h-[18px]" />}
                     </button>
 
                     {/* Status Indicator */}
-                    <div className={`p-3 rounded-full text-white font-semibold flex items-center space-x-2 transition-colors duration-300 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}>
-                        {isOnline ? <CloudUpload size={18} /> : <CloudOff size={18} />}
-                        <span className="text-sm hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
+                    <div className={`p-2 sm:p-3 rounded-full text-white font-semibold flex items-center space-x-1 sm:space-x-2 transition-colors duration-300 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}>
+                        {isOnline ? <CloudUpload size={16} className="sm:w-[18px] sm:h-[18px]" /> : <CloudOff size={16} className="sm:w-[18px] sm:h-[18px]" />}
+                        <span className="text-xs sm:text-sm hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
                     </div>
 
                     {/* Sync Button */}
                     <button
                         onClick={() => handleSync()}
                         disabled={isSyncButtonDisabled}
-                        className={`py-2 px-4 rounded-lg font-medium transition-all duration-300 shadow-md flex items-center space-x-2
+                        className={`py-1.5 px-3 sm:py-2 sm:px-4 rounded-lg font-medium transition-all duration-300 shadow-md flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm
                             ${isSyncButtonDisabled
                                 ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                                 : 'bg-indigo-500 text-white hover:bg-indigo-600 hover:shadow-lg'
@@ -233,38 +233,40 @@ export const Main: React.FC = () => {
                     >
                         {isSyncing ? (
                             <>
-                                <RefreshCw size={18} className="animate-spin" />
-                                <span>Syncing...</span>
+                                <RefreshCw size={16} className="sm:w-[18px] sm:h-[18px] animate-spin" />
+                                <span className="hidden sm:inline">Syncing...</span>
+                                <span className="sm:hidden">Sync</span>
                             </>
                         ) : (
                             <>
-                                <CloudUpload size={18} />
-                                <span>Sync All ({pendingEntries.length})</span>
+                                <CloudUpload size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                <span className="hidden sm:inline">Sync All ({pendingEntries.length})</span>
+                                <span className="sm:hidden">({pendingEntries.length})</span>
                             </>
                         )}
                     </button>
                 </div>
             </header>
 
-            <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <main className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
 
                 {/* Column 1: Entry Type Selection */}
-                <div className="lg:col-span-1 space-y-4">
-                    <div className="p-6 bg-white shadow-xl rounded-xl">
-                        <h2 className="text-xl font-bold mb-4 text-gray-800">Select Entry Type</h2>
-                        <div className="grid grid-cols-2 gap-4">
+                <div className="lg:col-span-1 space-y-3 sm:space-y-4">
+                    <div className="p-4 sm:p-6 bg-white shadow-xl rounded-xl">
+                        <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800">Select Entry Type</h2>
+                        <div className="grid grid-cols-2 gap-2 sm:gap-4">
                             {entryTypeButtons.map(({ type, Icon, label }) => (
                                 <button
                                     key={type}
                                     onClick={() => setCurrentEntryType(type)}
-                                    className={`p-4 rounded-lg text-center transition-all duration-200 border-2 shadow-sm
+                                    className={`p-3 sm:p-4 rounded-lg text-center transition-all duration-200 border-2 shadow-sm
                                         ${currentEntryType === type
                                             ? 'bg-indigo-600 border-indigo-700 text-white shadow-indigo-300'
                                             : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >
-                                    <Icon size={24} className="mx-auto mb-1" />
-                                    <span className="font-medium text-sm">{label}</span>
+                                    <Icon size={20} className="sm:w-6 sm:h-6 mx-auto mb-1" />
+                                    <span className="font-medium text-xs sm:text-sm">{label}</span>
                                 </button>
                             ))}
                         </div>

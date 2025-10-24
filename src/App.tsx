@@ -84,23 +84,23 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-purple-50 to-indigo-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-purple-50 to-indigo-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 p-3 sm:p-4">
         <div className="w-full max-w-md">
           {/* Login Card */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
             {/* Header with Gradient */}
-            <div className="bg-gradient-to-r from-cyan-500 to-purple-600 p-8 text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-4">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-gradient-to-r from-cyan-500 to-purple-600 p-6 sm:p-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-sm rounded-full mb-3 sm:mb-4">
+                <svg className="w-10 h-10 sm:w-12 sm:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2">GateKeeper</h1>
-              <p className="text-cyan-100 text-sm">Secure Checkpoint Management</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">GateKeeper</h1>
+              <p className="text-cyan-100 text-xs sm:text-sm">Secure Checkpoint Management</p>
             </div>
 
             {/* Login Form */}
-            <form onSubmit={handleLogin} className="p-8 space-y-6">
+            <form onSubmit={handleLogin} className="p-5 sm:p-8 space-y-4 sm:space-y-6">
               <div>
                 <label htmlFor="username" className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
                   Username
@@ -110,7 +110,7 @@ function App() {
                   name="username"
                   type="text"
                   defaultValue="admin"
-                  className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 transition-all duration-200 outline-none"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 transition-all duration-200 outline-none"
                   placeholder="Enter your username"
                   required
                 />
@@ -125,7 +125,7 @@ function App() {
                   name="password"
                   type="password"
                   defaultValue="password"
-                  className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 transition-all duration-200 outline-none"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 transition-all duration-200 outline-none"
                   placeholder="Enter your password"
                   required
                 />
@@ -139,13 +139,13 @@ function App() {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 dark:focus:ring-cyan-800"
+                className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 text-sm sm:text-base rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 dark:focus:ring-cyan-800"
               >
                 Sign In
               </button>
 
               {/* Demo Credentials Info */}
-              <div className="mt-6 p-4 bg-cyan-50 dark:bg-gray-700 rounded-lg border border-cyan-200 dark:border-gray-600">
+              <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-cyan-50 dark:bg-gray-700 rounded-lg border border-cyan-200 dark:border-gray-600">
                 <p className="text-xs font-semibold text-cyan-900 dark:text-cyan-100 mb-2">Demo Credentials:</p>
                 <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
                   <p><span className="font-mono bg-white dark:bg-gray-800 px-2 py-0.5 rounded">admin</span> / <span className="font-mono bg-white dark:bg-gray-800 px-2 py-0.5 rounded">password</span></p>
