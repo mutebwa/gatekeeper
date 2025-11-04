@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { 
   FileText, 
   Download, 
@@ -25,6 +26,7 @@ import type { Entry, EntryType, PersonnelPayload, TruckPayload, CarPayload, Othe
 
 export function SupervisorDashboard() {
   const { token, user } = useAuth();
+  const { t } = useTranslation();
   
   // State
   const [searchTerm, setSearchTerm] = useState('');
@@ -224,20 +226,20 @@ export function SupervisorDashboard() {
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">Supervisor Dashboard</h1>
-        <p className="text-gray-600">Monitor all checkpoint activities and manage operators</p>
+        <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">{t('supervisor.title')}</h1>
+        <p className="text-gray-600">{t('supervisor.allEntries')}</p>
       </div>
 
       {/* Success/Error Messages */}
       {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2 text-green-800">
+        <div className="mb-6 p-4 bg-green-50/20 border border-green-200 rounded-lg flex items-center space-x-2 text-green-800">
           <CheckCircle size={20} />
           <span>{success}</span>
         </div>
       )}
       
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-800">
+        <div className="mb-6 p-4 bg-red-50/20 border border-red-200 rounded-lg flex items-center space-x-2 text-red-800">
           <AlertCircle size={20} />
           <span>{error}</span>
         </div>
@@ -248,7 +250,7 @@ export function SupervisorDashboard() {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Total Entries</p>
+              <p className="text-gray-600 text-sm font-medium">{t('dashboard.totalEntries')}</p>
               <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
             </div>
             <FileText className="text-indigo-600" size={32} />
@@ -258,7 +260,7 @@ export function SupervisorDashboard() {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Pending Sync</p>
+              <p className="text-gray-600 text-sm font-medium">{t('entryList.pending')} Sync</p>
               <p className="text-3xl font-bold text-yellow-600 mt-1">{stats.pending}</p>
             </div>
             <AlertCircle className="text-yellow-600" size={32} />
@@ -268,7 +270,7 @@ export function SupervisorDashboard() {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Synced</p>
+              <p className="text-gray-600 text-sm font-medium">{t('entryList.synced')}</p>
               <p className="text-3xl font-bold text-green-600 mt-1">{stats.synced}</p>
             </div>
             <CheckCircle className="text-green-600" size={32} />
@@ -278,7 +280,7 @@ export function SupervisorDashboard() {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Checkpoints</p>
+              <p className="text-gray-600 text-sm font-medium">{t('admin.checkpoints')}</p>
               <p className="text-3xl font-bold text-purple-600 mt-1">{checkpoints.length}</p>
             </div>
             <MapPin className="text-purple-600" size={32} />
@@ -293,7 +295,7 @@ export function SupervisorDashboard() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center space-x-2 mb-4">
               <Filter className="text-indigo-600" size={20} />
-              <h2 className="text-lg font-bold text-gray-800">Filter & Search</h2>
+              <h2 className="text-lg font-bold text-gray-800">{t('common.filter')} & {t('common.search')}</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -303,7 +305,7 @@ export function SupervisorDashboard() {
                   <SearchIcon className="absolute left-3 top-3 text-gray-400" size={20} />
                   <input
                     type="text"
-                    placeholder="Search by name, plate, ID..."
+                    placeholder={t('common.search') + '...'}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -317,11 +319,11 @@ export function SupervisorDashboard() {
                 onChange={(e) => setFilterType(e.target.value as EntryType | 'ALL')}
                 className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <option value="ALL">All Types</option>
-                <option value="PERSONNEL">Personnel</option>
-                <option value="TRUCK">Trucks</option>
-                <option value="CAR">Cars</option>
-                <option value="OTHER">Other</option>
+                <option value="ALL">{t('supervisor.filterByType')}</option>
+                <option value="PERSONNEL">{t('main.personnel')}</option>
+                <option value="TRUCK">{t('main.truck')}</option>
+                <option value="CAR">{t('main.car')}</option>
+                <option value="OTHER">{t('main.other')}</option>
               </select>
               
               {/* Checkpoint Filter */}
@@ -330,7 +332,7 @@ export function SupervisorDashboard() {
                 onChange={(e) => setFilterCheckpoint(e.target.value)}
                 className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <option value="ALL">All Checkpoints</option>
+                <option value="ALL">{t('supervisor.filterByCheckpoint')}</option>
                 {checkpoints.map(cp => (
                   <option key={cp} value={cp}>{cp}</option>
                 ))}
@@ -347,12 +349,12 @@ export function SupervisorDashboard() {
                 ) : (
                   <Download size={20} />
                 )}
-                <span>{isExporting ? 'Exporting...' : 'Export CSV'}</span>
+                <span>{isExporting ? t('supervisor.exporting') : t('supervisor.exportToCSV')}</span>
               </button>
             </div>
             
             <div className="mt-4 text-sm text-gray-600">
-              Showing {filteredEntries.length} of {visibleEntries.length} entries
+              {t('supervisor.showing')} {filteredEntries.length} {t('supervisor.of')} {visibleEntries.length} {t('supervisor.entries')}
               {user?.role === 'SUPERVISOR' && user.managed_operators && (
                 <span className="ml-2 text-blue-600">
                   (from {user.managed_operators.length} managed operator{user.managed_operators.length !== 1 ? 's' : ''})
@@ -377,7 +379,7 @@ export function SupervisorDashboard() {
             ) : (
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {filteredEntries.map(entry => (
-                  <div key={entry.record_id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div key={entry.record_id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50:bg-gray-700 transition-colors">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3 flex-1">
                         {getEntryIcon(entry.entry_type)}

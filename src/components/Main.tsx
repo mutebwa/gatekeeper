@@ -1,29 +1,17 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Truck, Car, User, X, CloudUpload, CloudOff, RefreshCw, Sun, Moon, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Truck, Car, User, X, CloudUpload, CloudOff, RefreshCw, AlertCircle } from 'lucide-react';
 import type { EntryType, Entry, Payload } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api/client';
 import { db } from '../lib/db';
 import { EntryForm } from './EntryForm';
 import { EntryList } from './EntryList';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export const Main: React.FC = () => {
     const { user, token } = useAuth();
-    
-    // Theme management
-    const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-        const savedTheme = localStorage.getItem('gatekeeper-theme');
-        return (savedTheme as 'light' | 'dark') || 'light';
-    });
-
-    useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('gatekeeper-theme', theme);
-    }, [theme]);
-
-    const toggleTheme = useCallback(() => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    }, []);
+    const { t } = useTranslation();
 
     // State management
     const [entries, setEntries] = useState<Entry[]>([]);
@@ -192,10 +180,10 @@ export const Main: React.FC = () => {
     }, [isOnline, token, pendingEntries.length, handleSync]);
 
     const entryTypeButtons = [
-        { type: 'PERSONNEL' as EntryType, Icon: User, label: 'Personnel' },
-        { type: 'TRUCK' as EntryType, Icon: Truck, label: 'Truck' },
-        { type: 'CAR' as EntryType, Icon: Car, label: 'Car' },
-        { type: 'OTHER' as EntryType, Icon: X, label: 'Other' },
+        { type: 'PERSONNEL' as EntryType, Icon: User, label: t('main.personnel') },
+        { type: 'TRUCK' as EntryType, Icon: Truck, label: t('main.truck') },
+        { type: 'CAR' as EntryType, Icon: Car, label: t('main.car') },
+        { type: 'OTHER' as EntryType, Icon: X, label: t('main.other') },
     ];
 
     const isSyncButtonDisabled = !isOnline || isSyncing || pendingEntries.length === 0;
@@ -203,22 +191,16 @@ export const Main: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50 font-sans p-2 sm:p-4 lg:p-8">
             <header className="mb-4 sm:mb-6 lg:mb-8 p-3 sm:p-4 bg-white shadow-lg rounded-xl flex flex-col sm:flex-row justify-between items-center sticky top-2 sm:top-4 z-10">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-indigo-700 mb-2 sm:mb-0">GateKeeper</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-indigo-700 mb-2 sm:mb-0">{t('main.title')}</h1>
 
                 <div className="flex items-center space-x-2 sm:space-x-4">
-                    {/* Theme Toggle */}
-                    <button
-                        onClick={toggleTheme}
-                        className="p-2 sm:p-3 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
-                        title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-                    >
-                        {theme === 'light' ? <Moon size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Sun size={16} className="sm:w-[18px] sm:h-[18px]" />}
-                    </button>
+                    {/* Language Switcher */}
+                    <LanguageSwitcher />
 
                     {/* Status Indicator */}
                     <div className={`p-2 sm:p-3 rounded-full text-white font-semibold flex items-center space-x-1 sm:space-x-2 transition-colors duration-300 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}>
                         {isOnline ? <CloudUpload size={16} className="sm:w-[18px] sm:h-[18px]" /> : <CloudOff size={16} className="sm:w-[18px] sm:h-[18px]" />}
-                        <span className="text-xs sm:text-sm hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
+                        <span className="text-xs sm:text-sm hidden sm:inline">{isOnline ? t('main.online') : t('main.offline')}</span>
                     </div>
 
                     {/* Sync Button */}
@@ -234,13 +216,13 @@ export const Main: React.FC = () => {
                         {isSyncing ? (
                             <>
                                 <RefreshCw size={16} className="sm:w-[18px] sm:h-[18px] animate-spin" />
-                                <span className="hidden sm:inline">Syncing...</span>
-                                <span className="sm:hidden">Sync</span>
+                                <span className="hidden sm:inline">{t('main.syncing')}</span>
+                                <span className="sm:hidden">{t('main.sync')}</span>
                             </>
                         ) : (
                             <>
                                 <CloudUpload size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                <span className="hidden sm:inline">Sync All ({pendingEntries.length})</span>
+                                <span className="hidden sm:inline">{t('main.syncAll')} ({pendingEntries.length})</span>
                                 <span className="sm:hidden">({pendingEntries.length})</span>
                             </>
                         )}
@@ -253,7 +235,7 @@ export const Main: React.FC = () => {
                 {/* Column 1: Entry Type Selection */}
                 <div className="lg:col-span-1 space-y-3 sm:space-y-4">
                     <div className="p-4 sm:p-6 bg-white shadow-xl rounded-xl">
-                        <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800">Select Entry Type</h2>
+                        <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800">{t('main.selectEntryType')}</h2>
                         <div className="grid grid-cols-2 gap-2 sm:gap-4">
                             {entryTypeButtons.map(({ type, Icon, label }) => (
                                 <button

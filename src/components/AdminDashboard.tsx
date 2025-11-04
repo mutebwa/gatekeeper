@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Users, MapPin, Plus, Edit2, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api/client';
@@ -9,6 +10,7 @@ import type { User, UserRole } from '../types';
 
 export function AdminDashboard() {
   const { token } = useAuth();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   
   // State for forms
@@ -134,20 +136,20 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">Admin Dashboard</h1>
-        <p className="text-gray-600">Manage users, roles, and checkpoints</p>
+        <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">{t('admin.title')}</h1>
+        <p className="text-gray-600">{t('admin.userManagement')} & {t('admin.checkpointManagement')}</p>
       </div>
 
       {/* Success/Error Messages */}
       {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2 text-green-800">
+        <div className="mb-6 p-4 bg-green-50/20 border border-green-200 rounded-lg flex items-center space-x-2 text-green-800">
           <CheckCircle size={20} />
           <span>{success}</span>
         </div>
       )}
       
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-800">
+        <div className="mb-6 p-4 bg-red-50/20 border border-red-200 rounded-lg flex items-center space-x-2 text-red-800">
           <AlertCircle size={20} />
           <span>{error}</span>
         </div>
@@ -160,59 +162,59 @@ export function AdminDashboard() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-2">
                 <Users className="text-indigo-600" size={24} />
-                <h2 className="text-xl font-bold text-gray-800">User Management</h2>
+                <h2 className="text-xl font-bold text-gray-800">{t('admin.userManagement')}</h2>
               </div>
               <button
                 onClick={() => setShowCreateUserForm(!showCreateUserForm)}
                 className="flex items-center space-x-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 <Plus size={18} />
-                <span>New User</span>
+                <span>{t('admin.createUser')}</span>
               </button>
             </div>
 
             {/* Create User Form */}
             {showCreateUserForm && (
-              <form onSubmit={handleCreateUser} className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                <h3 className="font-bold mb-4 text-indigo-900">Create New User</h3>
+              <form onSubmit={handleCreateUser} className="mb-6 p-4 bg-indigo-50/20 rounded-lg border border-indigo-200">
+                <h3 className="font-bold mb-4 text-indigo-900">{t('admin.createUser')}</h3>
                 <div className="space-y-3">
                   <input
                     name="username"
-                    placeholder="Username"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder={t('admin.username')}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
                     required
                   />
                   <input
                     name="password"
                     type="password"
-                    placeholder="Password"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder={t('admin.password')}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
                     required
                   />
                   <select
                     name="role"
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
                     required
                   >
-                    <option value="GATE_OPERATOR">Gate Operator</option>
-                    <option value="SUPERVISOR">Supervisor</option>
-                    <option value="ADMIN">Admin</option>
+                    <option value="GATE_OPERATOR">{t('admin.gateOperator')}</option>
+                    <option value="SUPERVISOR">{t('admin.supervisor')}</option>
+                    <option value="ADMIN">{t('admin.admin')}</option>
                   </select>
                   
                   {/* Supervisor Assignment (only for Gate Operators) */}
                   {selectedRole === 'GATE_OPERATOR' && (
                     <div className="border border-gray-300 rounded-lg p-3">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Assign to Supervisor:</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.assignToSupervisor')}</label>
                       {supervisors.length === 0 ? (
-                        <p className="text-sm text-gray-500">No supervisors available. Create a supervisor first.</p>
+                        <p className="text-sm text-gray-500">{t('admin.noSupervisorsAvailable')}</p>
                       ) : (
                         <select
                           name="supervisor_id"
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
-                          <option value="">No supervisor (Admin manages)</option>
+                          <option value="">{t('admin.noSupervisor')}</option>
                           {supervisors.map((sup: User) => (
                             <option key={sup.user_id} value={sup.user_id}>
                               {sup.username} ({sup.user_id})
@@ -224,9 +226,9 @@ export function AdminDashboard() {
                   )}
                   
                   <div className="border border-gray-300 rounded-lg p-3">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Allowed Checkpoints:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.allowedCheckpoints')}:</label>
                     {checkpointsLoading ? (
-                      <p className="text-sm text-gray-500">Loading checkpoints...</p>
+                      <p className="text-sm text-gray-500">{t('admin.loadingCheckpoints')}</p>
                     ) : (
                       <div className="space-y-2">
                         {checkpoints?.map(cp => (
@@ -250,14 +252,14 @@ export function AdminDashboard() {
                       disabled={createUserMutation.isPending}
                       className="flex-1 bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                     >
-                      {createUserMutation.isPending ? 'Creating...' : 'Create User'}
+                      {createUserMutation.isPending ? t('admin.creating') : t('admin.createUserButton')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowCreateUserForm(false)}
                       className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      Cancel
+                      {t('admin.cancel')}
                     </button>
                   </div>
                 </div>
@@ -266,19 +268,19 @@ export function AdminDashboard() {
 
             {/* Users List */}
             <div>
-              <h3 className="font-bold mb-4 text-gray-800">Existing Users</h3>
+              <h3 className="font-bold mb-4 text-gray-800">{t('admin.existingUsers')}</h3>
               {usersLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader className="animate-spin text-indigo-600" size={32} />
                 </div>
               ) : usersError ? (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-                  Failed to load users
+                  {t('admin.failedToLoadUsers')}
                 </div>
               ) : users && users.length > 0 ? (
                 <div className="space-y-2">
                   {users.map(user => (
-                    <div key={user.user_id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div key={user.user_id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50:bg-gray-700 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
@@ -288,7 +290,7 @@ export function AdminDashboard() {
                               user.role === 'SUPERVISOR' ? 'bg-blue-100 text-blue-800' :
                               'bg-green-100 text-green-800'
                             }`}>
-                              {user.role.replace('_', ' ')}
+                              {t(`roles.${user.role}`)}
                             </span>
                           </div>
                           <div className="text-sm text-gray-600 mt-1">
@@ -296,24 +298,24 @@ export function AdminDashboard() {
                           </div>
                           {user.allowed_checkpoints && user.allowed_checkpoints.length > 0 && (
                             <div className="text-xs text-gray-500 mt-1">
-                              Checkpoints: {user.allowed_checkpoints.join(', ')}
+                              {t('admin.checkpointsLabel')} {user.allowed_checkpoints.join(', ')}
                             </div>
                           )}
                           {user.supervisor_id && (
                             <div className="text-xs text-blue-600 mt-1">
-                              Supervisor: {users?.find(u => u.user_id === user.supervisor_id)?.username || user.supervisor_id}
+                              {t('admin.supervisorLabel')} {users?.find(u => u.user_id === user.supervisor_id)?.username || user.supervisor_id}
                             </div>
                           )}
                           {user.managed_operators && user.managed_operators.length > 0 && (
                             <div className="text-xs text-green-600 mt-1">
-                              Manages: {user.managed_operators.length} operator(s)
+                              {t('admin.manages')}: {user.managed_operators.length} {t('admin.operators')}
                             </div>
                           )}
                         </div>
                         <button
                           onClick={() => setEditingUser(user)}
                           className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                          title="Edit role"
+                          title={t('admin.editRole')}
                         >
                           <Edit2 size={18} />
                         </button>
@@ -322,22 +324,22 @@ export function AdminDashboard() {
                       {/* Role Edit Form */}
                       {editingUser?.user_id === user.user_id && (
                         <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Change Role:</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.role')}:</label>
                           <div className="flex space-x-2">
                             <select
                               className="flex-1 p-2 border border-gray-300 rounded-lg"
                               defaultValue={user.role}
                               onChange={(e) => handleUpdateRole(user.user_id, e.target.value as UserRole)}
                             >
-                              <option value="GATE_OPERATOR">Gate Operator</option>
-                              <option value="SUPERVISOR">Supervisor</option>
-                              <option value="ADMIN">Admin</option>
+                              <option value="GATE_OPERATOR">{t('admin.gateOperator')}</option>
+                              <option value="SUPERVISOR">{t('admin.supervisor')}</option>
+                              <option value="ADMIN">{t('admin.admin')}</option>
                             </select>
                             <button
                               onClick={() => setEditingUser(null)}
                               className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
                             >
-                              Cancel
+                              {t('admin.cancel')}
                             </button>
                           </div>
                         </div>
@@ -346,7 +348,7 @@ export function AdminDashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No users found</p>
+                <p className="text-gray-500 text-center py-4">{t('admin.noUsersFound')}</p>
               )}
             </div>
           </div>
@@ -357,39 +359,39 @@ export function AdminDashboard() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-2">
-                <MapPin className="text-indigo-600" size={24} />
-                <h2 className="text-xl font-bold text-gray-800">Checkpoint Management</h2>
+                <MapPin className="text-purple-600" size={24} />
+                <h2 className="text-xl font-bold text-gray-800">{t('admin.checkpointManagement')}</h2>
               </div>
               <button
                 onClick={() => setShowCreateCheckpointForm(!showCreateCheckpointForm)}
-                className="flex items-center space-x-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="flex items-center space-x-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
                 <Plus size={18} />
-                <span>New Checkpoint</span>
+                <span>{t('admin.newCheckpoint')}</span>
               </button>
             </div>
 
             {/* Create Checkpoint Form */}
             {showCreateCheckpointForm && (
-              <form onSubmit={handleCreateCheckpoint} className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                <h3 className="font-bold mb-4 text-indigo-900">Create New Checkpoint</h3>
+              <form onSubmit={handleCreateCheckpoint} className="mb-6 p-4 bg-indigo-50/20 rounded-lg border border-indigo-200">
+                <h3 className="font-bold mb-4 text-indigo-900">{t('admin.createNewCheckpoint')}</h3>
                 <div className="space-y-3">
                   <input
                     name="checkpoint_id"
-                    placeholder="Checkpoint ID (e.g., CP-NORTH-01)"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder={t('admin.checkpointIdPlaceholder')}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
                     required
                   />
                   <input
                     name="name"
-                    placeholder="Checkpoint Name"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder={t('admin.checkpointNamePlaceholder')}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
                     required
                   />
                   <input
                     name="location"
-                    placeholder="Location/Description"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder={t('admin.locationPlaceholder')}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
                     required
                   />
                   <div className="flex space-x-2">
@@ -398,14 +400,14 @@ export function AdminDashboard() {
                       disabled={createCheckpointMutation.isPending}
                       className="flex-1 bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                     >
-                      {createCheckpointMutation.isPending ? 'Creating...' : 'Create Checkpoint'}
+                      {createCheckpointMutation.isPending ? t('admin.creating') : t('admin.createCheckpointButton')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowCreateCheckpointForm(false)}
                       className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      Cancel
+                      {t('admin.cancel')}
                     </button>
                   </div>
                 </div>
@@ -414,19 +416,19 @@ export function AdminDashboard() {
 
             {/* Checkpoints List */}
             <div>
-              <h3 className="font-bold mb-4 text-gray-800">Existing Checkpoints</h3>
+              <h3 className="font-bold mb-4 text-gray-800">{t('admin.existingCheckpoints')}</h3>
               {checkpointsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader className="animate-spin text-indigo-600" size={32} />
                 </div>
               ) : checkpointsError ? (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-                  Failed to load checkpoints
+                  {t('admin.failedToLoadCheckpoints')}
                 </div>
               ) : checkpoints && checkpoints.length > 0 ? (
                 <div className="space-y-2">
                   {checkpoints.map(checkpoint => (
-                    <div key={checkpoint.checkpoint_id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div key={checkpoint.checkpoint_id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50:bg-gray-700 transition-colors">
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="font-medium text-gray-900">{checkpoint.name}</div>
@@ -439,22 +441,22 @@ export function AdminDashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No checkpoints found</p>
+                <p className="text-gray-500 text-center py-4">{t('admin.noCheckpointsFound')}</p>
               )}
             </div>
           </div>
 
           {/* Stats Card */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-            <h3 className="text-lg font-bold mb-4">System Overview</h3>
+            <h3 className="text-lg font-bold mb-4">{t('admin.systemOverview')}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-3xl font-bold">{users?.length || 0}</div>
-                <div className="text-sm opacity-90">Total Users</div>
+                <div className="text-sm opacity-90">{t('admin.totalUsers')}</div>
               </div>
               <div>
                 <div className="text-3xl font-bold">{checkpoints?.length || 0}</div>
-                <div className="text-sm opacity-90">Checkpoints</div>
+                <div className="text-sm opacity-90">{t('admin.checkpoints')}</div>
               </div>
             </div>
           </div>

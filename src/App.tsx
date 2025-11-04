@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { Dashboard } from './components/Dashboard';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -39,6 +40,7 @@ function AppWrapper() {
 
 function App() {
   const { user, login, logout, isLoading, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const [filteredEntries, setFilteredEntries] = useState<Entry[]>([]);
   const [loginError, setLoginError] = useState<string | null>(null);
 
@@ -67,7 +69,7 @@ function App() {
       await login(username, password);
     } catch (error) {
       console.error('Login error:', error);
-      setLoginError('Invalid username or password. Please try again.');
+      setLoginError(t('login.invalidCredentials'));
     }
   };
 
@@ -76,7 +78,7 @@ function App() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-purple-50 to-indigo-100">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">{t('app.loading')}</p>
         </div>
       </div>
     );
@@ -84,10 +86,10 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-purple-50 to-indigo-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 p-3 sm:p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-purple-50 to-indigo-100 p-3 sm:p-4">
         <div className="w-full max-w-md">
           {/* Login Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
             {/* Header with Gradient */}
             <div className="bg-gradient-to-r from-cyan-500 to-purple-600 p-6 sm:p-8 text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-sm rounded-full mb-3 sm:mb-4">
@@ -95,38 +97,38 @@ function App() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">GateKeeper</h1>
-              <p className="text-cyan-100 text-xs sm:text-sm">Secure Checkpoint Management</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{t('login.title')}</h1>
+              <p className="text-cyan-100 text-xs sm:text-sm">{t('login.subtitle')}</p>
             </div>
 
             {/* Login Form */}
             <form onSubmit={handleLogin} className="p-5 sm:p-8 space-y-4 sm:space-y-6">
               <div>
-                <label htmlFor="username" className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  Username
+                <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
+                  {t('login.username')}
                 </label>
                 <input
                   id="username"
                   name="username"
                   type="text"
                   defaultValue="admin"
-                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 transition-all duration-200 outline-none"
-                  placeholder="Enter your username"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-gray-200 bg-white text-gray-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all duration-200 outline-none"
+                  placeholder={t('login.enterUsername')}
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  Password
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                  {t('login.password')}
                 </label>
                 <input
                   id="password"
                   name="password"
                   type="password"
                   defaultValue="password"
-                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 transition-all duration-200 outline-none"
-                  placeholder="Enter your password"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-gray-200 bg-white text-gray-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all duration-200 outline-none"
+                  placeholder={t('login.enterPassword')}
                   required
                 />
               </div>
@@ -139,25 +141,25 @@ function App() {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 text-sm sm:text-base rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 dark:focus:ring-cyan-800"
+                className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 text-sm sm:text-base rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300"
               >
-                Sign In
+                {t('login.signIn')}
               </button>
 
               {/* Demo Credentials Info */}
-              <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-cyan-50 dark:bg-gray-700 rounded-lg border border-cyan-200 dark:border-gray-600">
-                <p className="text-xs font-semibold text-cyan-900 dark:text-cyan-100 mb-2">Demo Credentials:</p>
-                <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
-                  <p><span className="font-mono bg-white dark:bg-gray-800 px-2 py-0.5 rounded">admin</span> / <span className="font-mono bg-white dark:bg-gray-800 px-2 py-0.5 rounded">password</span></p>
-                  <p><span className="font-mono bg-white dark:bg-gray-800 px-2 py-0.5 rounded">op_east</span> / <span className="font-mono bg-white dark:bg-gray-800 px-2 py-0.5 rounded">password</span></p>
+              <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-cyan-50 rounded-lg border border-cyan-200">
+                <p className="text-xs font-semibold text-cyan-900 mb-2">{t('login.demoCredentials')}</p>
+                <div className="text-xs text-gray-600 space-y-1">
+                  <p><span className="font-mono bg-white px-2 py-0.5 rounded">admin</span> / <span className="font-mono bg-white px-2 py-0.5 rounded">password</span></p>
+                  <p><span className="font-mono bg-white px-2 py-0.5 rounded">op_east</span> / <span className="font-mono bg-white px-2 py-0.5 rounded">password</span></p>
                 </div>
               </div>
             </form>
           </div>
 
           {/* Footer */}
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-            Offline-first checkpoint management system
+          <p className="text-center text-sm text-gray-600 mt-6">
+            {t('app.offlineFirst')}
           </p>
         </div>
       </div>

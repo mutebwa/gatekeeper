@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { BarChart3, ClipboardList, Users, Shield, Search as SearchIcon, LogOut } from 'lucide-react';
 import type { User } from '../types';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface NavigationProps {
     user: User | null;
@@ -10,36 +12,37 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ user, onLogout }) => {
     const location = useLocation();
+    const { t } = useTranslation();
 
     // Build navigation items based on user role
     const navItems = [
         {
             path: '/checkpoint',
-            label: 'Checkpoint',
+            label: t('navigation.checkpoint'),
             icon: ClipboardList,
             roles: ['GATE_OPERATOR', 'SUPERVISOR', 'ADMIN']
         },
         {
             path: '/dashboard',
-            label: 'Dashboard',
+            label: t('navigation.dashboard'),
             icon: BarChart3,
             roles: ['GATE_OPERATOR', 'SUPERVISOR', 'ADMIN']
         },
         {
             path: '/search',
-            label: 'Search',
+            label: t('navigation.search'),
             icon: SearchIcon,
             roles: ['SUPERVISOR', 'ADMIN']
         },
         {
             path: '/supervisor',
-            label: 'Supervisor',
+            label: t('navigation.supervisor'),
             icon: Shield,
             roles: ['SUPERVISOR', 'ADMIN']
         },
         {
             path: '/admin',
-            label: 'Admin',
+            label: t('navigation.admin'),
             icon: Users,
             roles: ['ADMIN']
         }
@@ -75,10 +78,11 @@ export const Navigation: React.FC<NavigationProps> = ({ user, onLogout }) => {
                 </div>
 
                 {/* User Info and Logout */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                    <LanguageSwitcher />
                     <div className="hidden sm:block text-right">
                         <div className="text-sm font-medium text-gray-800">{user?.username}</div>
-                        <div className="text-xs text-gray-500">{user?.role.replace('_', ' ')}</div>
+                        <div className="text-xs text-gray-500">{t(`roles.${user?.role}`)}</div>
                     </div>
                     <button
                         onClick={onLogout}
@@ -86,7 +90,7 @@ export const Navigation: React.FC<NavigationProps> = ({ user, onLogout }) => {
                         title="Logout"
                     >
                         <LogOut size={18} />
-                        <span className="hidden md:inline text-sm">Logout</span>
+                        <span className="hidden md:inline text-sm">{t('navigation.logout')}</span>
                     </button>
                 </div>
             </div>

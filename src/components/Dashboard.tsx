@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { BarChart3, Users, Truck, Car, Activity, TrendingUp, Clock, AlertCircle, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/db';
@@ -7,6 +8,7 @@ import type { Entry as _Entry } from '../types';
 
 export const Dashboard: React.FC = () => {
     const { user } = useAuth();
+    const { t } = useTranslation();
 
     // Fetch all entries from IndexedDB
     const { data: allEntries = [], isLoading } = useQuery({
@@ -54,6 +56,11 @@ export const Dashboard: React.FC = () => {
         const carCount = entries.filter(e => e.entry_type === 'CAR').length;
         const otherCount = entries.filter(e => e.entry_type === 'OTHER').length;
 
+        // Today's entries
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayEntries = entries.filter(e => new Date(e.created_at) >= today).length;
+
         // Recent activity (last 7 days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -64,6 +71,7 @@ export const Dashboard: React.FC = () => {
 
         return {
             totalEntries,
+            todayEntries,
             pendingEntries,
             syncedEntries,
             personnelCount,
@@ -77,28 +85,28 @@ export const Dashboard: React.FC = () => {
 
     const statCards = [
         {
-            title: 'Total Entries',
+            title: t('dashboard.totalEntries'),
             value: stats.totalEntries.toString(),
             icon: Activity,
-            color: 'bg-blue-500',
-            trend: stats.recentEntries > 0 ? '+' + stats.recentEntries + ' this week' : 'No recent activity'
+            color: 'bg-indigo-500',
+            trend: 'All time'
         },
         {
-            title: 'Pending Sync',
-            value: stats.pendingEntries.toString(),
+            title: t('dashboard.todayEntries'),
+            value: stats.todayEntries.toString(),
             icon: Clock,
-            color: stats.pendingEntries > 0 ? 'bg-yellow-500' : 'bg-green-500',
-            trend: stats.pendingEntries > 0 ? 'Needs sync' : 'All synced'
-        },
-        {
-            title: 'Synced Entries',
-            value: stats.syncedEntries.toString(),
-            icon: TrendingUp,
             color: 'bg-green-500',
-            trend: 'Ready for analysis'
+            trend: 'Last 24 hours'
         },
         {
-            title: 'Avg/Day (7d)',
+            title: t('dashboard.pendingSync'),
+            value: stats.pendingEntries.toString(),
+            icon: TrendingUp,
+            color: 'bg-yellow-500',
+            trend: 'Awaiting upload'
+        },
+        {
+            title: t('dashboard.avgPerDay'),
             value: stats.avgPerDay.toString(),
             icon: BarChart3,
             color: 'bg-purple-500',
@@ -107,10 +115,10 @@ export const Dashboard: React.FC = () => {
     ];
 
     const entryTypeData = [
-        { type: 'Personnel', count: stats.personnelCount, icon: Users, color: 'bg-indigo-500' },
-        { type: 'Trucks', count: stats.truckCount, icon: Truck, color: 'bg-green-500' },
-        { type: 'Cars', count: stats.carCount, icon: Car, color: 'bg-blue-500' },
-        { type: 'Other', count: stats.otherCount, icon: AlertCircle, color: 'bg-gray-500' }
+        { type: t('dashboard.personnelEntries'), count: stats.personnelCount, icon: Users, color: 'bg-indigo-500' },
+        { type: t('dashboard.truckEntries'), count: stats.truckCount, icon: Truck, color: 'bg-green-500' },
+        { type: t('dashboard.carEntries'), count: stats.carCount, icon: Car, color: 'bg-blue-500' },
+        { type: t('dashboard.otherEntries'), count: stats.otherCount, icon: AlertCircle, color: 'bg-gray-500' }
     ];
 
     if (isLoading) {
@@ -124,9 +132,9 @@ export const Dashboard: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50 font-sans p-4 sm:p-8">
             <div className="mb-8">
-                <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">Dashboard</h1>
+                <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">{t('dashboard.title')}</h1>
                 <p className="text-gray-600">
-                    Overview of checkpoint activity and analytics
+                    {t('dashboard.overview')}
                     {user?.role === 'SUPERVISOR' && user.managed_operators && (
                         <span className="ml-2 text-sm text-blue-600">
                             (Showing data from {user.managed_operators.length} managed operator{user.managed_operators.length !== 1 ? 's' : ''})
@@ -161,7 +169,7 @@ export const Dashboard: React.FC = () => {
             {/* Entry Type Distribution */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div className="bg-white rounded-xl shadow-lg p-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Entry Type Distribution</h2>
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">{t('dashboard.byType')}</h2>
                     <div className="space-y-4">
                         {entryTypeData.map((item, index) => (
                             <div key={index} className="flex items-center justify-between">
